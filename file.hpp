@@ -15,9 +15,14 @@ namespace file {
             return "";
         }
         uint i = len - 1;
-        for (; i > 0; i--) {
+        for (; i >= 0; i--) {
             if (filePath[i] == '/') {
-                return filePath + i + 1;
+                uint newLen = len - i;
+                char *result = new char[newLen];
+                for (uint j = 0; j < newLen; j++) {
+                    result[j] = filePath[i + 1 + j];
+                }
+                return result;
             }
         }
         return "";

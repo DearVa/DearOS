@@ -1,5 +1,6 @@
 #pragma once
 #include "graphic.hpp"
+#include "lua.h"
 
 namespace system0 {
     /// 致命错误（蓝屏）
@@ -18,5 +19,9 @@ namespace system0 {
             }
         }
         return -1;
+    }
+
+    void registerLua(lua_State *L) {
+        graphic::registerLua(L);
     }
 }

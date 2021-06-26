@@ -4,26 +4,67 @@
 #include "system.hpp"
 #include "process.hpp"
 #include "file.hpp"
+#include "lua.h"
+#include "lauxlib.h"
 
 namespace loader {
-    PCB *loadProgram(char *filePath) {
-        if (!memory::check(sizeof(PCB))) {
-            return nullptr;  // 内存不足以创建内存块
+    /// 从文件系统加载一个二进制文件并放入PCB链表，0成功，1内存不足，2文件不存在，3文件错误
+    int loadProgram(char *filePath) {
+        if (!memory::check(sizeof(process::PCB))) {
+            return 1;  // 内存不足以创建内存块
         }
-        PCB *pcb = new PCB();
+        process::PCB *pcb = new process::PCB();
+        if (pcb == nullptr) {
+            return 1;
+        }
+        if (!SPIFFS.exists(filePath)) {
+            return 2;
+        }
+        Serial.print("FilePath: ");
+        Serial.println(filePath);
         pcb->name = file::getFileName(filePath);
-		pcb->name[15] = '\0';
+        Serial.print("pcb->name: ");
+        Serial.println(pcb->name);
 		File f = SPIFFS.open(filePath, "r");
         pcb->memSize = f.size();
+        Serial.print("memsize: ");
+        Serial.println(pcb->memSize);
         if (!memory::check(pcb->memSize)) {
-            return nullptr;  // 内存不足以创建内存块
+            delete pcb;
+            f.close();
+            return 1;  // 内存不足以创建内存块
         }
-        pcb->dstMem = malloc(pcb->memSize);
+        pcb->dstMem = new char[pcb->memSize];
         if (pcb->dstMem == nullptr) {
-            system::critical("Unable to allocate memory");
+            delete pcb;
+            return 1;
         }
-        f.read(pcb->dstMem, pcb->memSize);
+        f.read((uint8_t *)pcb->dstMem, pcb->memSize);
+        f.close();
+        Serial.println("Read Done. Starting State...");
         pcb->memPtr = pcb->dstMem;
+        pcb->L = luaL_newstate();  // 创建state
+        if (pcb->L == nullptr) {
+            delete pcb->dstMem;
+            delete pcb;
+        }
+        system0::registerLua(pcb->L);
+        Serial.println("Started.");
+        int result = luaL_loadbufferx(pcb->L, pcb->dstMem, pcb->memSize, pcb->name, nullptr);
+        Serial.print("Buffer loaded: ");
+        Serial.println(result);
+        if (result == LUA_ERRSYNTAX) {
+            lua_close(pcb->L);
+            delete pcb->dstMem;
+            delete pcb;
+            return 3;
+        } else if (result == LUA_ERRMEM) {
+            lua_close(pcb->L);
+            delete pcb->dstMem;
+            delete pcb;
+            return 1;
+        }
         process::addProcess(pcb);
+        return 0;
 	}
 } // namespace loader
