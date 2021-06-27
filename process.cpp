@@ -61,14 +61,14 @@ namespace process {
             return;
         }
         auto temp = nowPCB;
-        printS("当前PCB：", temp->name);
+        // printS("当前PCB：", temp->name);
         if (temp->millis > millis()) {  // 尚未达到需要轮转的时间
             bringNowPCBToBack();
             return;
         }
         temp->timeLeft = timeSpan;
         int yCount;  // 存放返回值个数
-        printS("开始运行：", temp->name);
+        // printS("开始运行：", temp->name);
         int result = lua_resume(temp->L, 0, 0, &yCount);
         if (result != 0) {  // 发生运行时错误
             printS("运行时错误：", lua_tostring(temp->L, -1));
