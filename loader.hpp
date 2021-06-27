@@ -62,6 +62,7 @@ namespace loader {
             delete pcb;
             return 1;
         }
+        pcb->millis = 0;
         process::addProcess(pcb);
         return 0;
 	}

@@ -4,6 +4,7 @@ while (true) do
     i = i + 1
     if (i == 128) then
         i = 0
+        delay(500)
     end
     fillCircle(50, i, 5, 65535)
 end

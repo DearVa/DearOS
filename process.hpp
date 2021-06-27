@@ -12,6 +12,8 @@ enum class ProcessState {
     Terminated,
 };
 
+typedef unsigned long ulong;
+
 /// 进程控制块
 struct PCB {
 	char *name;          // 进程名
@@ -21,10 +23,13 @@ struct PCB {
     uint memSize;        // 占用内存大小（仅程序段）
     int timeLeft;        // 剩余时间片
     lua_State *L;        // 当前程序的Lua栈
+    ulong millis;        // 希望被唤醒的时钟刻，用于delay
 	PCB *next;           // 下一个PCB块
 };
 
-extern PCB *lastPCB, *endPCB;      // 循环链表
+#define nowPCB (endPCB ? endPCB->next : nullptr)
+
+extern PCB *endPCB;                // 循环链表，指向队尾
 extern uint pcbCount;              // 进程块的数量
 
 void printS(const char *str, const char *msg);
@@ -36,6 +41,8 @@ namespace process {
 
     /// 将当前PCB移出队列并释放资源
     void inline removeNowPCB();
+    /// 将当前PCB移到队尾
+    void inline bringNowPCBToBack();
 
 	void loop();
 } // namespace process

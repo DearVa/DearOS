@@ -1,5 +1,6 @@
 #pragma once
 #include "graphic.hpp"
+#include "process.hpp"
 #include "lua.h"
 #include "lauxlib.h"
 
@@ -33,6 +34,18 @@ namespace system0 {
         return 1;
     }
 
+    static int delayLua(lua_State *L) {
+        int n = lua_gettop(L);  // 获取参数个数
+        if (n != 1) {
+            lua_pushstring(L, "Incorrect argument");
+            lua_error(L);
+        }
+        ulong t = (ulong)luaL_checkinteger(L, 1);
+        endPCB->next->millis = t + millis();
+        endPCB->next->timeLeft = 0;
+        return 0;
+    }
+
     /// 全局lua_State，新进程必须从此处创建thread
     lua_State *L;
     /// 创建一个lua_State，注册函数和类
@@ -43,5 +56,6 @@ namespace system0 {
         }
         graphic::registerLua(L);
         lua_register(L, "millis", millisLua);
+        lua_register(L, "delay", delayLua);
     }
 }

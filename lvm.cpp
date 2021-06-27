@@ -1140,7 +1140,7 @@ void luaV_finishOp(lua_State *L) {
 #define vmbreak break
 
 void luaV_execute(lua_State *L, CallInfo *ci) {
-	PCB *pcb = lastPCB->next;
+	PCB *pcb = endPCB->next;
 	pcb->state = ProcessState::Running; // Running
 	LClosure *cl;
 	TValue *k;
@@ -1168,7 +1168,7 @@ returning: /* trap already set */
 		Instruction i; /* instruction being executed */
 		StkId ra;	   /* instruction's A register */
 		vmfetch();
-		if (l_unlikely(pcb->timeLeft <= 0)) {  // 时间片到，抢占
+		if (l_unlikely(pcb->timeLeft <= 0)) {  // 时间片到，换出
 			pcb->state = ProcessState::Ready;
 			lua_yield(L, 0);
 			return;

@@ -16,6 +16,7 @@ void setup() {
     Serial.println("Load Program...");
 	Serial.println(loader::loadProgram("/test1"));
 	Serial.println(loader::loadProgram("/test2"));
+	Serial.println(loader::loadProgram("/test3"));
 	Serial.println(ESP.getFreeHeap());
 }
 
