@@ -10,10 +10,10 @@
 namespace loader {
     /// 从文件系统加载一个二进制文件并放入PCB链表，0成功，1内存不足，2文件不存在，3文件错误
     int loadProgram(char *filePath) {
-        if (!memory::check(sizeof(process::PCB))) {
+        if (!memory::check(sizeof(PCB))) {
             return 1;  // 内存不足以创建内存块
         }
-        process::PCB *pcb = new process::PCB();
+        PCB *pcb = new PCB();
         if (pcb == nullptr) {
             return 1;
         }
@@ -42,13 +42,11 @@ namespace loader {
         f.read((uint8_t *)pcb->dstMem, pcb->memSize);
         f.close();
         Serial.println("Read Done. Starting State...");
-        pcb->memPtr = pcb->dstMem;
-        pcb->L = luaL_newstate();  // 创建state
+        pcb->L = lua_newthread(system0::L);  // 创建state
         if (pcb->L == nullptr) {
             delete pcb->dstMem;
             delete pcb;
         }
-        system0::registerLua(pcb->L);
         Serial.println("Started.");
         int result = luaL_loadbufferx(pcb->L, pcb->dstMem, pcb->memSize, pcb->name, nullptr);
         Serial.print("Buffer loaded: ");

@@ -746,7 +746,7 @@ static void resume (lua_State *L, void *ud) {
       }
       luaD_poscall(L, ci, n);  /* finish 'luaD_call' */
     }
-    unroll(L, NULL);  /* run continuation */
+    // unroll(L, NULL);  /* run continuation */ 注释掉，不然死循环
   }
 }
 
